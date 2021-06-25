@@ -4,10 +4,15 @@ import (
 	"errors"
 	"github.com/audrenbdb/oscmd"
 	"github.com/stretchr/testify/assert"
+	"runtime"
 	"testing"
 )
 
 func TestCommandExistsInLinux(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
 	tests := []struct {
 		cmd string
 		args []string
@@ -31,6 +36,5 @@ func TestCommandExistsInLinux(t *testing.T) {
 		} else {
 			assert.Equal(t, test.err.Error(), err.Error())
 		}
-
 	}
 }
