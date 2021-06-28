@@ -1,6 +1,8 @@
 package oscmd_test
 
 import (
+	"os"
+	"path"
 	"runtime"
 	"testing"
 
@@ -9,35 +11,43 @@ import (
 )
 
 func TestRmkDirInUserHomeDirOnLinux(t *testing.T) {
-	//integration test done 25/06 11:57 UTC
+	//integration test done 28/06 11:00 UTC
 	t.Skip()
 	if runtime.GOOS != "linux" {
 		return
 	}
 
-	tests := []struct {
-		dirPath string
+	homeDir, err := os.UserHomeDir()
+	if assert.NoError(t, err) {
+		tests := []struct {
+			dirPath string
+			outFullPath string
+			outErr error
+		}{
+			{
+				dirPath: "test",
+				outFullPath: path.Join(homeDir, "test/"),
+				outErr:  nil,
+			},
+			{
+				dirPath: "/opt/test",
+				outFullPath: path.Join(homeDir, "/opt/test/"),
+				outErr:  nil,
+			},
+		}
 
-		outErr error
-	}{
-		{
-			dirPath: "test",
-			outErr:  nil,
-		},
-		{
-			dirPath: "/opt/test",
-			outErr:  nil,
-		},
-	}
-
-	for _, test := range tests {
-		rmkDirFunc := oscmd.NewRmkDirInUserHomeDirFunc()
-		err := rmkDirFunc(test.dirPath)
-		if test.outErr != nil {
-			assert.NotNil(t, err)
-		} else {
-			assert.Nil(t, err)
+		for _, test := range tests {
+			rmkDirFunc := oscmd.NewRmkDirInUserHomeDirFunc()
+			fullPath, err := rmkDirFunc(test.dirPath)
+			if test.outErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, test.outFullPath, fullPath)
+			}
 		}
 	}
+
+
 
 }

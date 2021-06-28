@@ -1,4 +1,4 @@
-//oscmd provides a wrapper around os commands to ease unit testing
+//Package oscmd provides a wrapper around os commands to ease unit testing
 package oscmd
 
 import (
@@ -6,17 +6,16 @@ import (
 	"path"
 )
 
-//RmkDirInUserHomeDir remove all folder and subfolder
-//And create a new dir with given perm
-type RmkDirInUserHomeDir = func(dirPath string) error
+//RmkDirInUserHomeDir and returns its full path
+type RmkDirInUserHomeDir = func(dirPath string) (string, error)
 
 func NewRmkDirInUserHomeDirFunc() RmkDirInUserHomeDir {
-	return func(dirPath string) error {
+	return func(dirPath string) (string, error) {
 		fullPath, err := getDirFullPathFromUserHomeDir(dirPath)
 		if err != nil {
-			return err
+			return "", err
 		}
-		return rmkDir(fullPath)
+		return fullPath, rmkDir(fullPath)
 	}
 }
 
