@@ -11,7 +11,7 @@ func TestExecFunc(t *testing.T) {
 		description string
 
 		cmdIsNotFound cmdIsNotFound
-		run run
+		run           cmdRun
 
 		cmdName string
 		args []string
@@ -27,10 +27,10 @@ func TestExecFunc(t *testing.T) {
 			description: "should fail to exec cmd",
 			cmdIsNotFound: func(cmdName string) bool {return false},
 			run: func(cmdName string, args ...string) error {
-				return errors.New("failed to run")
+				return errors.New("failed to cmdRun")
 			},
 			cmdName: "ls",
-			outErr: errors.New("failed to run"),
+			outErr: errors.New("failed to cmdRun"),
 
 		},
 	}
@@ -42,32 +42,38 @@ func TestExecFunc(t *testing.T) {
 	}
 }
 
-/*
-func TestCommandExistsInLinux(t *testing.T) {
-	t.Skip()
-	tests := []struct {
-		cmd string
+func TestStartFunc(t *testing.T) {
+	tests := []struct{
+		description string
+
+		cmdIsNotFound cmdIsNotFound
+		run           cmdRun
+
+		cmdName string
 		args []string
-		err error
+		outErr error
 	}{
 		{
-			cmd: "toto",
-			err: errors.New("command not found in path"),
+			description: "should return cmd not found error",
+			cmdIsNotFound: func(cmdName string) bool {return true},
+			cmdName: "ls",
+			outErr: cmdNotFound,
 		},
 		{
-			cmd: "ls",
-			err: nil,
+			description: "should fail to exec cmd",
+			cmdIsNotFound: func(cmdName string) bool {return false},
+			run: func(cmdName string, args ...string) error {
+				return errors.New("failed to cmdRun")
+			},
+			cmdName: "ls",
+			outErr: errors.New("failed to cmdRun"),
+
 		},
 	}
 
 	for _, test := range tests {
-		execFunc := NewExecFunc()
-		err := execFunc(test.cmd)
-		if test.err == nil {
-			assert.Nil(t, err)
-		} else {
-			assert.Equal(t, test.err.Error(), err.Error())
-		}
+		exec := newStartFunc(test.cmdIsNotFound, test.run)
+		err := exec(test.cmdName, test.args...)
+		assert.Equal(t, test.outErr, err)
 	}
 }
- */

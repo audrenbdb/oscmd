@@ -1,20 +1,37 @@
-//oscmd provides a wrapper around os commands to ease unit testing
+//Package oscmd provides a wrapper around os commands to ease unit testing
 package oscmd
 
 import "os/exec"
 
-//Exec creates and run a given command and its args
-type Exec = func(name string, args ...string) error
+//Run runs a command and wait for its execution end
+type Run = func(name string, args ...string) error
+
+//Start starts the command and does not wait for it to end
+type Start = func(name string, args ...string) error
 
 
-func NewExecFunc() Exec {
+func NewExecFunc() Run {
 	lookPath := exec.LookPath
-	run := newRunFunc()
+	run := newCmdRunFunc()
 	return newExecFunc(newCmdIsNotFoundFunc(lookPath), run)
 }
 
+func NewStartFunc() Start {
+	lookPath := exec.LookPath
+	start := newCmdStartFunc()
+	return newStartFunc(newCmdIsNotFoundFunc(lookPath), start)
+}
 
-func newExecFunc(cmdIsNotFound cmdIsNotFound, run run) Exec {
+func newStartFunc(cmdIsNotFound cmdIsNotFound, start cmdStart) Start {
+	return func(cmdName string, args ...string) error {
+		if cmdIsNotFound(cmdName) {return cmdNotFound}
+		return start(cmdName, args...)
+	}
+}
+
+
+
+func newExecFunc(cmdIsNotFound cmdIsNotFound, run cmdRun) Run {
 	return func(cmdName string, args ...string) error {
 		if cmdIsNotFound(cmdName) {
 			return cmdNotFound
@@ -25,9 +42,17 @@ func newExecFunc(cmdIsNotFound cmdIsNotFound, run run) Exec {
 
 type lookPath = func(file string) (string, error)
 type cmdIsNotFound = func(cmdName string) bool
-type run = func(cmdName string, args ...string) error
+type cmdRun = func(cmdName string, args ...string) error
+type cmdStart = func(cmdName string, args ...string) error
 
-func newRunFunc() run {
+func newCmdStartFunc() cmdStart {
+	return func(cmdName string, args ...string) error {
+		cmd := exec.Command(cmdName, args...)
+		return cmd.Start()
+	}
+}
+
+func newCmdRunFunc() cmdRun {
 	return func(cmdName string, args ...string) error {
 		cmd := exec.Command(cmdName, args...)
 		return cmd.Run()
