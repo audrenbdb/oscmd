@@ -1,18 +1,50 @@
-package oscmd_test
+package oscmd
 
 import (
 	"errors"
-	"github.com/audrenbdb/oscmd"
 	"github.com/stretchr/testify/assert"
-	"runtime"
 	"testing"
 )
 
-func TestCommandExistsInLinux(t *testing.T) {
-	if runtime.GOOS != "linux" {
-		return
+func TestExecFunc(t *testing.T) {
+	tests := []struct{
+		description string
+
+		cmdIsNotFound cmdIsNotFound
+		run run
+
+		cmdName string
+		args []string
+		outErr error
+	}{
+		{
+			description: "should return cmd not found error",
+			cmdIsNotFound: func(cmdName string) bool {return true},
+			cmdName: "ls",
+			outErr: cmdNotFound,
+		},
+		{
+			description: "should fail to exec cmd",
+			cmdIsNotFound: func(cmdName string) bool {return false},
+			run: func(cmdName string, args ...string) error {
+				return errors.New("failed to run")
+			},
+			cmdName: "ls",
+			outErr: errors.New("failed to run"),
+
+		},
 	}
 
+	for _, test := range tests {
+		exec := newExecFunc(test.cmdIsNotFound, test.run)
+		err := exec(test.cmdName, test.args...)
+		assert.Equal(t, test.outErr, err)
+	}
+}
+
+/*
+func TestCommandExistsInLinux(t *testing.T) {
+	t.Skip()
 	tests := []struct {
 		cmd string
 		args []string
@@ -29,7 +61,7 @@ func TestCommandExistsInLinux(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		execFunc := oscmd.NewExecFunc()
+		execFunc := NewExecFunc()
 		err := execFunc(test.cmd)
 		if test.err == nil {
 			assert.Nil(t, err)
@@ -38,3 +70,4 @@ func TestCommandExistsInLinux(t *testing.T) {
 		}
 	}
 }
+ */
