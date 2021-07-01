@@ -18,6 +18,14 @@ func NewRmkDirInUserHomeDirFunc() RmkDirInUserHomeDir {
 		return fullPath, rmkDir(fullPath)
 	}
 }
+//RmkDir removes a directory in given path and recreates it
+type RmkDir = func(fullPath string) error
+
+func NewRmkDirFunc() RmkDir {
+	return func(fullPath string) error {
+		return rmkDir(fullPath)
+	}
+}
 
 func rmkDir(fullPath string) error {
 	err := os.RemoveAll(fullPath)
