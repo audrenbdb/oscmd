@@ -10,7 +10,7 @@ type Run = func(name string, args ...string) error
 type Start = func(name string, args ...string) error
 
 
-func NewExecFunc() Run {
+func NewRunFunc() Run {
 	lookPath := exec.LookPath
 	run := newCmdRunFunc()
 	return newExecFunc(newCmdIsNotFoundFunc(lookPath), run)
